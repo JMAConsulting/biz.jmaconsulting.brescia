@@ -68,3 +68,21 @@ function brescia_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
 function brescia_civicrm_managed(&$entities) {
   return _brescia_civix_civicrm_managed($entities);
 }
+
+function brescia_civicrm_postProcess( $formName, &$form ) {
+  if ($formName == "CRM_Profile_Form_Edit" && $form->getVar('_gid') == 15) {
+    // Create tour request activity
+    $details = '<p>Tour date: '. $form->_submitValues['custom_7_display'].'</p>';
+    $details .= '<p>Tour time: '. $form->_submitValues['custom_8'].'</p>';
+    $params = array(
+      'source_contact_id' => $form->getVar('_id'),
+      'target_contact_id' => $form->getVar('_id'),
+      'activity_type_id' => 52,
+      'subject' => 'Tour Request submitted by '. $form->_submitValues['first_name'],
+      'activity_date_time' => date('Y-m-d H:i:s'),
+      'status_id' => 2,
+      'details' => $details,
+    );
+    civicrm_api3('Activity', 'create', $params);
+  }
+}
