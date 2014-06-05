@@ -73,6 +73,7 @@ function brescia_civicrm_postProcess( $formName, &$form ) {
   if ($formName == "CRM_Profile_Form_Edit" && ($form->getVar('_gid') == 15 || $form->getVar('_gid') == 24)) {
     // Create tour request activity
     $details = '';
+    
     if (CRM_Utils_Array::value('custom_8', $form->_submitValues)) {
       $details .= '<p>Tour date: '. $form->_submitValues['custom_7_display'].'</p>';
       $details .= '<p>Tour time: '. $form->_submitValues['custom_8'].'</p>';
@@ -80,6 +81,10 @@ function brescia_civicrm_postProcess( $formName, &$form ) {
     if (CRM_Utils_Array::value('custom_42', $form->_submitValues)) {
       $details .= '<p>Tour date: '. $form->_submitValues['custom_41_display'].'</p>';
       $details .= '<p>Tour time: '. $form->_submitValues['custom_42'].'</p>';
+    }
+    if (CRM_Utils_Array::value('custom_1', $form->_submitValues)) {
+      $education = CRM_Core_OptionGroup::values('current_education_level_20130822101507');
+      $details .= '<p>Current Education Level: '. $education[$form->_submitValues['custom_1']].'</p>';
     }
     if (CRM_Utils_Array::value('custom_38', $form->_submitValues)) {
       $details .= '<p>I would like to tour: '. $form->_submitValues['custom_38'].'</p>';
