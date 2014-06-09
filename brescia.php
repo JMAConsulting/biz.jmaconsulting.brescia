@@ -109,3 +109,8 @@ function brescia_civicrm_postProcess( $formName, &$form ) {
     civicrm_api3('Activity', 'create', $params);
   }
 }
+
+function brescia_civicrm_alterMailingLabelParams(&$args) {
+  $args['txt'] = html_entity_decode($args['txt']);
+  $args['ishtml'] = 1;
+}
