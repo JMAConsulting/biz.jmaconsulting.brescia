@@ -1174,8 +1174,10 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
               self::addToErrorMsg($customFields[$customFieldID]['label'], $errorMessage);
             }
           }
+          // BRES-84
           if ($customFields[$customFieldID]['data_type'] == 'ContactReference') {
-            // BRES-84
+            // BRES-121
+            $value = mysql_real_escape_string($value);
             $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contact WHERE organization_name = '{$value}' OR sort_name = '{$value}'");
             $value = $cid;
             $valid = CRM_Core_BAO_CustomValue::typecheck($customFields[$customFieldID]['data_type'], $cid);
@@ -1882,6 +1884,7 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
           }
         }
         elseif ($customFields[$customFieldID]['data_type'] == 'ContactReference') {
+          $val = mysql_real_escape_string($val);
           $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contact WHERE organization_name = '{$val}' OR sort_name = '{$val}'");
           $params[$key] = (int)$cid;
         }
