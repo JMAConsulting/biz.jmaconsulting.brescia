@@ -122,7 +122,7 @@ function brescia_civicrm_buildForm($formName, &$form) {
     $urlParams = array(
       'crm_first_name' => $form->_params['first_name'],
       'crm_last_name' => $form->_params['last_name'],
-      'crm_email' => $form->_params['email-5'],
+      'crm_email' => urlencode($form->_params['email-5']),
      );
     $url = strtr(REDIRECT_URL, $urlParams);
     CRM_Utils_System::redirect($url);
