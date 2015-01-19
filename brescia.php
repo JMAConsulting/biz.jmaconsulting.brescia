@@ -1,6 +1,8 @@
 <?php
 
 require_once 'brescia.civix.php';
+define('CONTRIBUTION_PAGE_ID', 1);
+define('REDIRECT_URL', ' http://apply.bresciauc.ca/apply-to-brescia?email=crm_email&first_name=crm_first_name&last_name=crm_last_name');
 
 /**
  * Implementation of hook_civicrm_config
@@ -113,4 +115,16 @@ function brescia_civicrm_postProcess( $formName, &$form ) {
 function brescia_civicrm_alterMailingLabelParams(&$args) {
   $args['txt'] = html_entity_decode($args['txt']);
   $args['ishtml'] = 1;
+}
+
+function brescia_civicrm_buildForm($formName, &$form) {
+  if ($formName == 'CRM_Contribute_Form_Contribution_ThankYou' && $form->_id == CONTRIBUTION_PAGE_ID) {
+    $urlParams = array(
+      'crm_first_name' => $form->_params['first_name'],
+      'crm_last_name' => $form->_params['last_name'],
+      'crm_email' => $form->_params['email-5'],
+     );
+    $url = strtr(REDIRECT_URL, $urlParams);
+    CRM_Utils_System::redirect($url);
+  }
 }
