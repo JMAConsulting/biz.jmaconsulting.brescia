@@ -2,7 +2,7 @@
 
 require_once 'brescia.civix.php';
 define('CONTRIBUTION_PAGE_ID', 1);
-define('REDIRECT_URL', ' http://apply.bresciauc.ca/apply-to-brescia?email=crm_email&first_name=crm_first_name&last_name=crm_last_name');
+define('REDIRECT_URL', 'http://apply.bresciauc.ca/apply-to-brescia/?email=crm_email&first_name=crm_first_name&last_name=crm_last_name');
 
 /**
  * Implementation of hook_civicrm_config
