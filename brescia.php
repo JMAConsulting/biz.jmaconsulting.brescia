@@ -3,6 +3,9 @@
 require_once 'brescia.civix.php';
 define('CONTRIBUTION_PAGE_ID', 1);
 define('REDIRECT_URL', 'http://apply.bresciauc.ca/apply-to-brescia/?email=crm_email&first_name=crm_first_name&last_name=crm_last_name');
+define('EMAIL_FIELD', 119);
+define('FNAME_FIELD', 117);
+define('LNAME_FIELD', 118);
 
 /**
  * Implementation of hook_civicrm_config
@@ -127,4 +130,35 @@ function brescia_civicrm_buildForm($formName, &$form) {
     $url = strtr(REDIRECT_URL, $urlParams);
     CRM_Utils_System::redirect($url);
   }
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main' && $form->_id == CONTRIBUTION_PAGE_ID) {
+    $defaults = array();
+    $defaultsValues = $form->_defaultValues;
+    $fields = array(
+      'first_name' => 'custom_' . FNAME_FIELD,
+      'last_name' => 'custom_' . LNAME_FIELD,
+      'email-5' => 'custom_' . EMAIL_FIELD,
+    );
+
+    foreach ($fields as $key => $field) {
+      if (CRM_Utils_Array::value($key, $defaultsValues) && !CRM_Utils_Array::value($field, $defaultsValues))  {
+        $defaults[$field] = $defaultsValues[$key];
+      }
+    }
+    $form->setDefaults($defaults);    
+  }
 }
+
+function brescia_civicrm_alterPaymentProcessorParams($paymentObj, &$rawParams, &$cookedParams) {
+  if ($paymentObj->_processorName == 'PayPal Standard' 
+    && $rawParams['contributionPageID'] == CONTRIBUTION_PAGE_ID) {
+    $fields = array(
+      'first_name' => 'custom_' . FNAME_FIELD,
+      'last_name' => 'custom_' . LNAME_FIELD,
+      'email' => 'custom_' . EMAIL_FIELD,
+    );
+    foreach ($fields as $key => $field) {
+      $cookedParams[$key] = $rawParams[$field];
+    }
+  }
+}
+
