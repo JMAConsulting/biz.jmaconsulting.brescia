@@ -128,7 +128,7 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
    *
    * @return void
    */
-  function init() {
+  public function init() {
     $contactFields = CRM_Contact_BAO_Contact::importableFields($this->_contactType);
     // exclude the address options disabled in the Address Settings
     $fields = CRM_Core_BAO_Address::validateAddressOptions($contactFields);
@@ -1190,9 +1190,9 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
 
           // check for values for custom fields for checkboxes and multiselect
           if ($customFields[$customFieldID]['html_type'] == 'CheckBox' || $customFields[$customFieldID]['html_type'] == 'AdvMulti-Select' || $customFields[$customFieldID]['html_type'] == 'Multi-Select') {
-            $value        = trim($value);
-            $value        = str_replace('|', ',', $value);
-            $mulValues    = explode(',', $value);
+            $value = trim($value);
+            $value = str_replace('|', ',', $value);
+            $mulValues = explode(',', $value);
             $customOption = CRM_Core_BAO_CustomOption::getCustomOption($customFieldID, TRUE);
             foreach ($mulValues as $v1) {
               if (strlen($v1) == 0) {
@@ -1896,18 +1896,19 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
           $params[$key] = (int)$cid;
         }
 
-      if ($key == 'birth_date' && $val) {
-        CRM_Utils_Date::convertToDefaultDate($params, $dateType, $key);
-      }
-      elseif ($key == 'deceased_date' && $val) {
-        CRM_Utils_Date::convertToDefaultDate($params, $dateType, $key);
-      }
-      elseif ($key == 'is_deceased' && $val) {
-        $params[$key] = CRM_Utils_String::strtoboolstr($val);
-      }
-      elseif ($key == 'gender') {
-        //CRM-4360
-        $params[$key] = $this->checkGender($val);
+        if ($key == 'birth_date' && $val) {
+          CRM_Utils_Date::convertToDefaultDate($params, $dateType, $key);
+        }
+        elseif ($key == 'deceased_date' && $val) {
+          CRM_Utils_Date::convertToDefaultDate($params, $dateType, $key);
+        }
+        elseif ($key == 'is_deceased' && $val) {
+          $params[$key] = CRM_Utils_String::strtoboolstr($val);
+        }
+        elseif ($key == 'gender') {
+          //CRM-4360
+          $params[$key] = $this->checkGender($val);
+        }
       }
     }
 
