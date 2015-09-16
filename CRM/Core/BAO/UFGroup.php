@@ -290,7 +290,8 @@ class CRM_Core_BAO_UFGroup extends CRM_Core_DAO_UFGroup {
     $ctype = NULL,
     $permissionType = CRM_Core_Permission::CREATE,
     $orderBy = 'field_name',
-    $orderProfiles = NULL
+    $orderProfiles = NULL,
+    $eventProfile = FALSE
   ) {
     if (!is_array($id)) {
       $id = CRM_Utils_Type::escape($id, 'Positive');
@@ -316,6 +317,16 @@ class CRM_Core_BAO_UFGroup extends CRM_Core_DAO_UFGroup {
 
     if (!$showAll) {
       $query .= " AND g.is_active = 1";
+    }
+
+    $checkPermission = array(
+      array(
+        'administer CiviCRM',
+        'manage event profiles',
+      ),
+    );
+    if ($eventProfile && CRM_Core_Permission::check($checkPermission)) {
+      $skipPermission = TRUE;
     }
 
     // add permissioning for profiles only if not registration
@@ -1764,8 +1775,7 @@ AND    ( entity_id IS NULL OR entity_id <= 0 )
 
       if (($contactType == $profileType) || $profileType == 'Contact') {
         return TRUE;
-      }
-      
+      }      
       if (is_array($profileType) && in_array($contactType, $profileType)) {
         return TRUE;
       }
@@ -2015,8 +2025,7 @@ AND    ( entity_id IS NULL OR entity_id <= 0 )
         $subtypeList = $subtypes;
       }
 
-      $sel = $form->add('select', $name, $title, $subtypeList, $required);
-      $sel->setMultiple(TRUE);
+      $form->add('select', $name, $title, $subtypeList, $required, array('class' => 'crm-select2', 'multiple' => TRUE));
     }
     elseif (in_array($fieldName, CRM_Contact_BAO_Contact::$_greetingTypes)) {
       //add email greeting, postal greeting, addressee, CRM-4575
@@ -2838,7 +2847,6 @@ AND    ( entity_id IS NULL OR entity_id <= 0 )
         CRM_Core_BAO_UFGroup::getValues($cid, $fields, $values, FALSE, $params, TRUE);
 
         $email = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_UFGroup', $gid, 'notify');
-        CRM_Core_Error::debug( '$email', $email );
 
         if (!empty($values) &&
           !empty($email)

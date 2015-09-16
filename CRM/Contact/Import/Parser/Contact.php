@@ -1176,6 +1176,7 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
               self::addToErrorMsg($customFields[$customFieldID]['label'], $errorMessage);
             }
           }
+          
           // BRES-84
           if ($customFields[$customFieldID]['data_type'] == 'ContactReference') {
             // BRES-121
@@ -1187,7 +1188,6 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
               self::addToErrorMsg($customFields[$customFieldID]['label'], $errorMessage);
             }
           }
-
           // check for values for custom fields for checkboxes and multiselect
           if ($customFields[$customFieldID]['html_type'] == 'CheckBox' || $customFields[$customFieldID]['html_type'] == 'AdvMulti-Select' || $customFields[$customFieldID]['html_type'] == 'Multi-Select') {
             $value = trim($value);
@@ -1895,20 +1895,20 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
           $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contact WHERE organization_name = '{$val}' OR sort_name = '{$val}'");
           $params[$key] = (int)$cid;
         }
+      }
 
-        if ($key == 'birth_date' && $val) {
-          CRM_Utils_Date::convertToDefaultDate($params, $dateType, $key);
-        }
-        elseif ($key == 'deceased_date' && $val) {
-          CRM_Utils_Date::convertToDefaultDate($params, $dateType, $key);
-        }
-        elseif ($key == 'is_deceased' && $val) {
-          $params[$key] = CRM_Utils_String::strtoboolstr($val);
-        }
-        elseif ($key == 'gender') {
-          //CRM-4360
-          $params[$key] = $this->checkGender($val);
-        }
+      if ($key == 'birth_date' && $val) {
+        CRM_Utils_Date::convertToDefaultDate($params, $dateType, $key);
+      }
+      elseif ($key == 'deceased_date' && $val) {
+        CRM_Utils_Date::convertToDefaultDate($params, $dateType, $key);
+      }
+      elseif ($key == 'is_deceased' && $val) {
+        $params[$key] = CRM_Utils_String::strtoboolstr($val);
+      }
+      elseif ($key == 'gender') {
+        //CRM-4360
+        $params[$key] = $this->checkGender($val);
       }
     }
 
