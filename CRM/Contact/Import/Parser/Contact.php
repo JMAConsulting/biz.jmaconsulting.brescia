@@ -1184,7 +1184,7 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
             $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contact WHERE organization_name = '{$value}' OR sort_name = '{$value}'");
             $value = $cid;
             $valid = CRM_Core_BAO_CustomValue::typecheck($customFields[$customFieldID]['data_type'], $cid);
-            if (!$valid) {
+            if (!$valid || !$cid) {
               self::addToErrorMsg($customFields[$customFieldID]['label'], $errorMessage);
             }
           }
