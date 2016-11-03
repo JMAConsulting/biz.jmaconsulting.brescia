@@ -87,6 +87,12 @@ class CRM_Utils_Mail_Incoming {
     if ($part instanceof ezcMailDeliveryStatus) {
       return NULL; 
     }
+
+    // CRM-19111 - Handle blank emails with a subject.
+    if (!$part) {
+      return NULL;
+    }
+
     CRM_Core_Error::fatal(ts("No clue about the %1", array(1 => get_class($part))));
   }
 
