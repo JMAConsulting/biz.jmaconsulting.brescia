@@ -1,9 +1,9 @@
 <?php
 /*
  +--------------------------------------------------------------------+
- | CiviCRM version 4.6                                                |
+ | CiviCRM version 4.7                                                |
  +--------------------------------------------------------------------+
- | Copyright CiviCRM LLC (c) 2004-2015                                |
+ | Copyright CiviCRM LLC (c) 2004-2017                                |
  +--------------------------------------------------------------------+
  | This file is a part of CiviCRM.                                    |
  |                                                                    |
@@ -28,9 +28,7 @@
 /**
  *
  * @package CRM
- * @copyright CiviCRM LLC (c) 2004-2015
- * $Id$
- *
+ * @copyright CiviCRM LLC (c) 2004-2017
  */
 class CRM_Utils_Mail_Incoming {
   const
@@ -84,6 +82,7 @@ class CRM_Utils_Mail_Incoming {
     if ($part instanceof ezcMailMultiPart) {
       return self::formatMailMultipart($part, $attachments);
     }
+
     if ($part instanceof ezcMailDeliveryStatus) {
       return NULL; 
     }
@@ -93,7 +92,7 @@ class CRM_Utils_Mail_Incoming {
       return NULL;
     }
 
-    CRM_Core_Error::fatal(ts("No clue about the %1", array(1 => get_class($part))));
+    return self::formatMailUnrecognisedPart($part);
   }
 
   /**
@@ -123,7 +122,7 @@ class CRM_Utils_Mail_Incoming {
       return self::formatMailMultipartReport($part, $attachments);
     }
 
-    CRM_Core_Error::fatal(ts("No clue about the %1", array(1 => get_class($part))));
+    return self::formatMailUnrecognisedPart($part);
   }
 
   /**
@@ -234,6 +233,29 @@ class CRM_Utils_Mail_Incoming {
 
   /**
    * @param $part
+   *
+   * @return string
+   */
+  public function formatMailDeliveryStatus($part) {
+    $t = '';
+    $t .= "-DELIVERY STATUS BEGIN-\n";
+    $t .= $part->generateBody();
+    $t .= "-DELIVERY STATUS END-\n";
+    return $t;
+  }
+
+  /**
+   * @param $part
+   *
+   * @return string
+   */
+  public function formatUnrecognisedPart($part) {
+    CRM_Core_Error::debug_log_message(ts('CRM_Utils_Mail_Incoming: Unable to handle message part of type "%1".', array('%1' => get_class($part))));
+    return ts('Unrecognised message part of type "%1".', array('%1' => get_class($part)));
+  }
+
+  /**
+   * @param $part
    * @param $attachments
    *
    * @return null
@@ -292,9 +314,6 @@ class CRM_Utils_Mail_Incoming {
       ));
     }
 
-    require_once 'ezc/Base/src/ezc_bootstrap.php';
-    require_once 'ezc/autoload/mail_autoload.php';
-
     // explode email to digestable format
     $set = new ezcMailFileSet(array($file));
     $parser = new ezcMailParser();
@@ -326,6 +345,14 @@ class CRM_Utils_Mail_Incoming {
     // and put it in a standardized format
     $params = array('is_error' => 0);
 
+    // Sometimes $mail->from is unset because ezcMail didn't handle format
+    // of From header. CRM-19215.
+    if (!isset($mail->from)) {
+      if (preg_match('/^([^ ]*)( (.*))?$/', $mail->getHeader('from'), $matches)) {
+        $mail->from = new ezcMailAddress($matches[1], trim($matches[2]));
+      }
+    }
+
     $params['from'] = array();
     self::parseAddress($mail->from, $field, $params['from'], $mail);
 
@@ -351,7 +378,7 @@ class CRM_Utils_Mail_Incoming {
 
     // format and move attachments to the civicrm area
     if (!empty($attachments)) {
-      $date = date('Ymdhis');
+      $date = date('YmdHis');
       $config = CRM_Core_Config::singleton();
       for ($i = 0; $i < count($attachments); $i++) {
         $attachNum = $i + 1;
@@ -417,7 +444,15 @@ class CRM_Utils_Mail_Incoming {
 
   /**
    * Retrieve a contact ID and if not present.
-   * create one with this email
+   *
+   * Create one with this email
+   *
+   * @param string $email
+   * @param string $name
+   * @param bool $create
+   * @param string $mail
+   *
+   * @return int|null
    */
   public static function getContactID($email, $name = NULL, $create = TRUE, &$mail) {
     $dao = CRM_Contact_BAO_Contact::matchContactOnEmail($email, 'Individual');
