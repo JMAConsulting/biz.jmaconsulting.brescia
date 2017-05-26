@@ -117,6 +117,9 @@ function brescia_civicrm_alterMailingLabelParams(&$args) {
 }
 
 function brescia_civicrm_buildForm($formName, &$form) {
+  if ($formName == "CRM_Profile_Form_Edit") {
+    CRM_Core_Resources::singleton()->addScriptFile('biz.jmaconsulting.brescia', 'js/hide-date.js');
+  }
   if ($formName == 'CRM_Contribute_Form_Contribution_ThankYou' && $form->_id == CONTRIBUTION_PAGE_ID) {
     $urlParams = array(
       'crm_first_name' => $form->_params['first_name'],
