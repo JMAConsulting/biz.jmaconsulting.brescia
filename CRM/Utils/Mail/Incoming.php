@@ -107,7 +107,7 @@ class CRM_Utils_Mail_Incoming {
     }
 
     if ($part instanceof ezcMailDeliveryStatus) {
-      return NULL;
+      return self::formatMailDeliveryStatus($part);
     }
 
     return self::formatMailUnrecognisedPart($part);
