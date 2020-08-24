@@ -1167,7 +1167,10 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
         /* validate the data against the CF type */
 
         if ($value) {
-          if ($customFields[$customFieldID]['data_type'] == 'Date') {
+          $dataType = $customFields[$customFieldID]['data_type'];
+          $htmlType = $customFields[$customFieldID]['html_type'];
+          $isSerialized = CRM_Core_BAO_CustomField::isSerialized($customFields[$customFieldID]);
+          if ($dataType == 'Date') {
             if (array_key_exists($customFieldID, $addressCustomFields) && CRM_Utils_Date::convertToDefaultDate($params[$key][0], $dateType, $key)) {
               $value = $params[$key][0][$key];
             }
@@ -1178,23 +1181,20 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
               self::addToErrorMsg($customFields[$customFieldID]['label'], $errorMessage);
             }
           }
-          elseif ($customFields[$customFieldID]['data_type'] == 'Boolean') {
+          elseif ($dataType == 'Boolean') {
             if (CRM_Utils_String::strtoboolstr($value) === FALSE) {
               self::addToErrorMsg($customFields[$customFieldID]['label'] . '::' . $customFields[$customFieldID]['groupTitle'], $errorMessage);
             }
           }
           // need not check for label filed import
-          $htmlType = [
+          $selectHtmlTypes = [
             'CheckBox',
-            'Multi-Select',
             'Select',
             'Radio',
-            'Multi-Select State/Province',
-            'Multi-Select Country',
             'Autocomplete-Select',
           ];
-          if (!in_array($customFields[$customFieldID]['html_type'], $htmlType) || $customFields[$customFieldID]['data_type'] == 'Boolean' || $customFields[$customFieldID]['data_type'] == 'ContactReference') {
-            $valid = CRM_Core_BAO_CustomValue::typecheck($customFields[$customFieldID]['data_type'], $value);
+          if ((!$isSerialized && !in_array($htmlType, $selectHtmlTypes)) || $dataType == 'Boolean' || $dataType == 'ContactReference') {
+            $valid = CRM_Core_BAO_CustomValue::typecheck($dataType, $value);
             if (!$valid) {
               self::addToErrorMsg($customFields[$customFieldID]['label'], $errorMessage);
             }
@@ -1213,7 +1213,7 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
           }
 
           // check for values for custom fields for checkboxes and multiselect
-          if ($customFields[$customFieldID]['html_type'] == 'CheckBox' || $customFields[$customFieldID]['html_type'] == 'Multi-Select') {
+          if ($isSerialized) {
             $value = trim($value);
             $value = str_replace('|', ',', $value);
             $mulValues = explode(',', $value);
@@ -1235,7 +1235,7 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
               }
             }
           }
-          elseif ($customFields[$customFieldID]['html_type'] == 'Select' || ($customFields[$customFieldID]['html_type'] == 'Radio' && $customFields[$customFieldID]['data_type'] != 'Boolean')) {
+          elseif ($htmlType == 'Select' || ($htmlType == 'Radio' && $dataType != 'Boolean')) {
             $customOption = CRM_Core_BAO_CustomOption::getCustomOption($customFieldID, TRUE);
             $flag = FALSE;
             foreach ($customOption as $v2) {
@@ -1247,7 +1247,7 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
               self::addToErrorMsg($customFields[$customFieldID]['label'], $errorMessage);
             }
           }
-          elseif ($customFields[$customFieldID]['html_type'] == 'Multi-Select State/Province') {
+          elseif ($isSerialized && $dataType === 'StateProvince') {
             $mulValues = explode(',', $value);
             foreach ($mulValues as $stateValue) {
               if ($stateValue) {
@@ -1260,7 +1260,7 @@ class CRM_Contact_Import_Parser_Contact extends CRM_Contact_Import_Parser {
               }
             }
           }
-          elseif ($customFields[$customFieldID]['html_type'] == 'Multi-Select Country') {
+          elseif ($isSerialized && $dataType == 'Country') {
             $mulValues = explode(',', $value);
             foreach ($mulValues as $countryValue) {
               if ($countryValue) {
